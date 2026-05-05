@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - ProctorEx</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #008080;   /* Teal */
+            --dark: #004d4d;      /* Dark Teal */
+            --accent: #ff7f50;    /* Coral Orange */
+            --bg: #f4f7f6;        /* Light Grey */
+            --sidebar-width: 260px;
+        }
+
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: 'Poppins', sans-serif; background: var(--bg); display: flex; height: 100vh; overflow: hidden; }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--dark) 0%, #003333 100%);
+            color: white; display: flex; flex-direction: column;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        
+        .brand {
+            padding: 25px; font-size: 22px; font-weight: 700;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; gap: 10px; color: var(--primary);
+        }
+        .brand span { color: white; }
+        .brand i { color: var(--accent); }
+
+        .menu { flex: 1; padding-top: 20px; overflow-y: auto; }
+        
+        .menu-item {
+            padding: 15px 25px; cursor: pointer; transition: 0.3s;
+            display: flex; align-items: center; gap: 15px; font-size: 14px;
+            color: #bdc3c7; text-decoration: none; border-left: 4px solid transparent;
+        }
+        .menu-item:hover, .menu-item.active {
+            background: rgba(255,255,255,0.05); color: white;
+            border-left: 4px solid var(--accent);
+        }
+        .menu-item i { width: 20px; text-align: center; }
+
+        .logout-section { padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .logout-btn {
+            width: 100%; padding: 12px; background: #c0392b; color: white;
+            border: none; border-radius: 6px; cursor: pointer; font-weight: 600;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: 0.3s;
+        }
+        .logout-btn:hover { background: #e74c3c; }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            flex: 1; overflow-y: auto; padding: 30px; position: relative;
+        }
+
+        .header-area {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 30px;
+        }
+        .header-area h1 { font-size: 28px; color: var(--dark); margin: 0; }
+        .header-area p { color: #7f8c8d; font-size: 14px; margin-top: 5px; }
+
+        /* --- SECTIONS (Tabs) --- */
+        .section { display: none; animation: fadeIn 0.4s ease-in-out; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- CARDS & FORMS --- */
+        .card {
+            background: white; padding: 30px; border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05); border-top: 5px solid var(--primary);
+            max-width: 800px; margin-bottom: 30px;
+        }
+
+        h2 { font-size: 20px; color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid #f0f2f5; padding-bottom: 10px; }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .full-width { grid-column: span 2; }
+
+        label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 8px; }
+        
+        input, select, textarea {
+            width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;
+            font-family: inherit; font-size: 14px; transition: 0.3s;
+        }
+        input:focus, textarea:focus {
+            border-color: var(--primary); outline: none; box-shadow: 0 0 5px rgba(0, 128, 128, 0.1);
+        }
+
+        .action-btn {
+            background: var(--primary); color: white; border: none; padding: 14px 30px;
+            border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s;
+            display: inline-flex; align-items: center; gap: 10px;
+        }
+        .action-btn:hover { background: var(--dark); transform: translateY(-2px); }
+        .action-btn i { font-size: 16px; }
+
+        /* --- TABLE STYLING --- */
+        .results-table {
+            width: 100%; border-collapse: collapse; background: white;
+            border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .results-table th, .results-table td { padding: 15px; text-align: left; }
+        .results-table th { background: var(--dark); color: white; font-weight: 500; font-size: 14px; }
+        .results-table tr { border-bottom: 1px solid #eee; }
+        .results-table tr:hover { background: #f9f9f9; }
+
+        /* Status Badges in Table */
+        .badge { padding: 5px 10px; border-radius: 15px; font-size: 12px; font-weight: bold; }
+        .bg-red { background: #fceceb; color: #c0392b; }
+        .bg-orange { background: #fef5e6; color: #e67e22; }
+        .bg-green { background: #e8f8f5; color: #27ae60; }
+
+        /* JSON Editor Area */
+        .json-area {
+            background: #282c34; color: #abb2bf; font-family: 'Consolas', monospace;
+            border-radius: 8px; padding: 15px; border: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="brand">
+            <i class="fas fa-university"></i> Proctor<span>Ex</span>
+        </div>
+        
+        <div class="menu">
+            <div class="menu-item active" onclick="showTab('dashboard')">
+                <i class="fas fa-home"></i> Dashboard
+            </div>
+            <div class="menu-item" onclick="showTab('student')">
+                <i class="fas fa-user-plus"></i> Register Student
+            </div>
+            <div class="menu-item" onclick="showTab('exam')">
+                <i class="fas fa-calendar-plus"></i> Create Exam
+            </div>
+            <div class="menu-item" onclick="showTab('question')">
+                <i class="fas fa-question-circle"></i> Add Questions
+            </div>
+            <div class="menu-item" onclick="showTab('assign')">
+                <i class="fas fa-link"></i> Assign Exam
+            </div>
+            <div class="menu-item" onclick="showTab('results')">
+                <i class="fas fa-chart-bar"></i> View Results
+            </div>
+        </div>
+
+        <div class="logout-section">
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        
+        <div class="header-area">
+            <div>
+                <h1>Admin Dashboard</h1>
+                <p>Manage students, exams, and monitor results efficiently.</p>
+            </div>
+        </div>
+
+        <div id="dashboard" class="section active">
+            <div class="card">
+                <h2>👋 Welcome back!</h2>
+                <p style="color:#666; line-height:1.6;">
+                    Use the sidebar menu to navigate. You can schedule new exams, upload questions in bulk, 
+                    and monitor student trust scores in real-time.
+                </p>
+                <div style="display:flex; gap:20px; margin-top:20px;">
+                    <div style="background:#e0f2f1; padding:20px; border-radius:10px; flex:1; text-align:center; color:var(--primary);">
+                        <i class="fas fa-users" style="font-size:30px; margin-bottom:10px;"></i><br>
+                        <b>Manage Students</b>
+                    </div>
+                    <div style="background:#fef5e6; padding:20px; border-radius:10px; flex:1; text-align:center; color:var(--accent);">
+                        <i class="fas fa-file-alt" style="font-size:30px; margin-bottom:10px;"></i><br>
+                        <b>Create Exams</b>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="student" class="section">
+            <div class="card">
+                <h2><i class="fas fa-user-graduate"></i> Register New Student</h2>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="stdName" placeholder="e.g. Ali Khan">
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="stdEmail" placeholder="e.g. ali@test.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="text" id="stdPass" placeholder="Set a secure password">
+                    </div>
+                </div>
+                <button class="action-btn" onclick="registerStudent()">
+                    <i class="fas fa-plus"></i> Create Account
+                </button>
+            </div>
+        </div>
+
+        <div id="exam" class="section">
+            <div class="card">
+                <h2><i class="fas fa-clock"></i> Schedule New Exam</h2>
+                <div class="form-group">
+                    <label>Exam Title</label>
+                    <input type="text" id="examName" placeholder="e.g. Computer Science Final">
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Duration (Minutes)</label>
+                        <input type="number" id="examDuration" placeholder="e.g. 60">
+                    </div>
+                    <div class="form-group">
+                        <label>Start Date & Time</label>
+                        <input type="datetime-local" id="examStart">
+                    </div>
+                </div>
+                <button class="action-btn" onclick="createExam()">
+                    <i class="fas fa-calendar-check"></i> Schedule Exam
+                </button>
+            </div>
+        </div>
+
+        <div id="question" class="section">
+            <div class="card">
+                <h2><i class="fas fa-plus-circle"></i> Add Single Question</h2>
+                <div class="form-group">
+                    <label>Target Exam ID</label>
+                    <input type="number" id="qExamId" placeholder="e.g. 1">
+                </div>
+                <div class="form-group">
+                    <label>Question Text</label>
+                    <textarea id="qText" rows="3" placeholder="Type question here..."></textarea>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Options (Comma separated)</label>
+                        <input type="text" id="qOptions" placeholder="Option A, Option B, Option C, Option D">
+                    </div>
+                    <div class="form-group">
+                        <label>Correct Answer (Exact Match)</label>
+                        <input type="text" id="qCorrect" placeholder="e.g. Option A">
+                    </div>
+                </div>
+                <button class="action-btn" onclick="addQuestion()">
+                    <i class="fas fa-save"></i> Save Question
+                </button>
+            </div>
+
+            <div class="card" style="border-top-color: var(--accent);">
+                <h2><i class="fas fa-rocket"></i> Bulk Upload (JSON)</h2>
+                <div class="form-group">
+                    <label>Target Exam ID</label>
+                    <input type="number" id="bulkExamId" placeholder="e.g. 1">
+                </div>
+                <div class="form-group">
+                    <label>Paste JSON Data</label>
+                    <textarea id="bulkData" class="json-area" rows="8" placeholder='[{"question_text": "...", "options": ["A", "B"], "correct_answer": "A"}]'></textarea>
+                </div>
+                <button class="action-btn" style="background:var(--accent);" onclick="uploadBulk()">
+                    <i class="fas fa-cloud-upload-alt"></i> Upload All
+                </button>
+            </div>
+        </div>
+
+        <div id="assign" class="section">
+            <div class="card">
+                <h2><i class="fas fa-link"></i> Assign Exam to Student</h2>
+                <p style="color:#666; font-size:14px; margin-bottom:20px;">Link a registered student to a scheduled exam.</p>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Student Email</label>
+                        <input type="email" id="assignEmail" placeholder="student@test.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Exam ID</label>
+                        <input type="number" id="assignExamId" placeholder="e.g. 1">
+                    </div>
+                </div>
+                <button class="action-btn" onclick="assignExam()">
+                    <i class="fas fa-paper-plane"></i> Assign Now
+                </button>
+            </div>
+        </div>
+
+        <div id="results" class="section">
+            <div class="card" style="max-width: 100%;">
+                <h2><i class="fas fa-chart-pie"></i> Student Results & AI Analysis</h2>
+                <div style="display:flex; gap:10px; margin-bottom:20px; align-items:flex-end;">
+                    <div style="flex:1;">
+                        <label>Filter by Exam ID</label>
+                        <input type="number" id="resultExamId" placeholder="e.g. 1">
+                    </div>
+                    <button class="action-btn" onclick="viewResults()">
+                        <i class="fas fa-search"></i> Fetch Report
+                    </button>
+                </div>
+
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Score</th>
+                            <th>Violations</th>
+                            <th>Trust Score</th>
+                            <th>Risk Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTableBody">
+                        <tr><td colspan="5" style="text-align:center; color:#999;">Enter Exam ID to view results.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const BASE_URL = "http://127.0.0.1:8000";
+        const UNI_TOKEN = localStorage.getItem('uni_token');
+
+        if (!UNI_TOKEN) { window.location.href = "uni_login_signup.html"; }
+
+        function getHeaders() { return { "Content-Type": "application/json", "Authorization": `Bearer ${UNI_TOKEN}` }; }
+        function logout() { localStorage.removeItem('uni_token'); window.location.href = "uni_login_signup.html"; }
+        
+        // Tab Switching Logic
+        function showTab(tabId) {
+            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            // Find menu item with onclick containing tabId and add active class
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => {
+                if(item.getAttribute('onclick').includes(tabId)) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // --- API FUNCTIONS (Same Logic, Better UI Feedback) ---
+
+        async function registerStudent() {
+            const name = document.getElementById('stdName').value;
+            const email = document.getElementById('stdEmail').value.trim();
+            const password = document.getElementById('stdPass').value;
+            if(!name || !email || !password) { alert("⚠️ Fill all fields"); return; }
+            
+            try {
+                const res = await fetch(`${BASE_URL}/student/register`, {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await res.json();
+                alert(res.ok ? "✅ Student Registered!" : "❌ Error: " + data.detail);
+                if(res.ok) { document.getElementById('stdName').value = ""; document.getElementById('stdEmail').value = ""; }
+            } catch(e) { alert("Server Error"); }
+        }
+
+        async function createExam() {
+            const name = document.getElementById('examName').value;
+            const duration = document.getElementById('examDuration').value;
+            const startTime = document.getElementById('examStart').value;
+            if(!name || !duration || !startTime) { alert("⚠️ Fill all fields"); return; }
+
+            try {
+                const res = await fetch(`${BASE_URL}/exam/`, {
+                    method: "POST", headers: getHeaders(),
+                    body: JSON.stringify({ name, duration_minutes: duration, description: "Online", start_time: startTime })
+                });
+                const data = await res.json();
+                alert(res.ok ? `✅ Exam Created! ID: ${data.id}` : "❌ Error");
+            } catch (e) { alert("Server Error"); }
+        }
+
+        async function addQuestion() {
+            const id = document.getElementById('qExamId').value;
+            const text = document.getElementById('qText').value;
+            const opts = document.getElementById('qOptions').value;
+            const correct = document.getElementById('qCorrect').value;
+            
+            if(!id || !text || !opts || !correct) { alert("⚠️ Fill all fields"); return; }
+            
+            try {
+                const res = await fetch(`${BASE_URL}/exam/${id}/questions`, {
+                    method: "POST", headers: getHeaders(),
+                    body: JSON.stringify({ question_text: text, options: opts.split(',').map(s=>s.trim()), correct_answer: correct })
+                });
+                alert(res.ok ? "✅ Question Added!" : "❌ Error");
+                if(res.ok) { document.getElementById('qText').value = ""; }
+            } catch(e) { alert("Server Error"); }
+        }
+
+        async function uploadBulk() {
+            const id = document.getElementById('bulkExamId').value;
+            try {
+                const json = JSON.parse(document.getElementById('bulkData').value);
+                const res = await fetch(`${BASE_URL}/exam/${id}/questions/bulk`, {
+                    method: "POST", headers: getHeaders(), body: JSON.stringify(json)
+                });
+                const data = await res.json();
+                alert(res.ok ? "✅ Bulk Upload Success!" : "❌ Error: " + data.detail);
+            } catch(e) { alert("Invalid JSON Format!"); }
+        }
+
+        async function assignExam() {
+            const email = document.getElementById('assignEmail').value;
+            const id = document.getElementById('assignExamId').value;
+            
+            try {
+                const res = await fetch(`${BASE_URL}/exam/assign`, {
+                    method: "POST", headers: getHeaders(),
+                    body: JSON.stringify({ student_email: email, exam_id: parseInt(id) })
+                });
+                alert(res.ok ? "✅ Assigned Successfully!" : "❌ Error");
+            } catch(e) { alert("Server Error"); }
+        }
+
+        async function viewResults() {
+            const id = document.getElementById('resultExamId').value;
+            if(!id) { alert("Enter Exam ID"); return; }
+            
+            try {
+                const res = await fetch(`${BASE_URL}/exam/${id}/results`, { headers: getHeaders() });
+                const data = await res.json();
+                const tbody = document.getElementById('resultsTableBody');
+                tbody.innerHTML = "";
+                
+                if(data.length === 0) { tbody.innerHTML = "<tr><td colspan='5' style='text-align:center'>No results found.</td></tr>"; return; }
+
+                data.forEach(row => {
+                    let badgeClass = "bg-green";
+                    if(row.risk_status === "Highly Suspicious") badgeClass = "bg-red";
+                    else if(row.risk_status === "Suspicious") badgeClass = "bg-orange";
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><b>${row.student_name}</b><br><span style="font-size:12px; color:#888;">${row.email}</span></td>
+                            <td>${row.score !== null ? row.score : "Pending"}</td>
+                            <td>${row.violations_count}</td>
+                            <td style="font-weight:bold;">${row.trust_score}%</td>
+                            <td><span class="badge ${badgeClass}">${row.risk_status}</span></td>
+                        </tr>
+                    `;
+                });
+            } catch(e) { alert("Error fetching results"); }
+        }
+    </script>
+
+</body>
+</html>

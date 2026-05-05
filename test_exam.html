@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Exam Environment</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface"></script>
+
+    <style>
+        /* --- 1. GLOBAL STYLES --- */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            height: 100vh; 
+            display: flex; 
+            background-color: #f0f2f5; 
+            color: #333;
+            overflow: hidden; /* Body scroll band, sirf question area scroll karega */
+        }
+
+        /* --- 2. MAIN CONTENT (LEFT SIDE) --- */
+        .exam-area {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto; /* Scrollable */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .exam-header {
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e1e4e8;
+            padding-bottom: 15px;
+        }
+
+        .exam-header h2 { font-size: 28px; color: #2c3e50; margin: 0; }
+        .exam-header p { color: #7f8c8d; margin-top: 5px; }
+
+        /* Question Cards */
+        .question-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-left: 5px solid #3498db; /* Blue Accent */
+            transition: transform 0.2s;
+        }
+        .question-card:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+
+        .question-card h3 { margin-top: 0; color: #34495e; font-size: 18px; }
+
+        /* Options Styling */
+        label {
+            display: block;
+            padding: 12px 15px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, border 0.2s;
+            border: 1px solid transparent;
+        }
+        label:hover { background: #eef2f7; border-color: #cbd5e0; }
+        input[type="radio"] { margin-right: 12px; transform: scale(1.2); accent-color: #3498db; }
+
+        /* Submit Button */
+        .submit-btn {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 30px;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+            transition: 0.3s;
+        }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(46, 204, 113, 0.6); }
+
+        /* --- 3. PROCTORING SIDEBAR (RIGHT SIDE) --- */
+        .sidebar {
+            width: 340px;
+            background: #2c3e50;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 25px;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        /* Timer */
+        .timer-display {
+            background: #e67e22;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Camera Feed */
+        .camera-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        video {
+            width: 100%;
+            border-radius: 10px;
+            border: 3px solid #27ae60; /* Green Default */
+            background: #000;
+            display: block;
+        }
+        .live-badge {
+            position: absolute;
+            top: 10px; left: 10px;
+            background: red;
+            color: white;
+            padding: 3px 8px;
+            font-size: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* Alerts */
+        .warning-box {
+            background: #c0392b;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            display: none; /* Hidden by default */
+            margin-bottom: 20px;
+            animation: shake 0.5s;
+        }
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 100% { transform: translateX(0); } }
+
+        /* Status List */
+        .status-list {
+            margin-top: auto; /* Push to bottom if space allows, or just below */
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 5px;
+        }
+        .status-item:last-child { border-bottom: none; margin-bottom: 0; }
+        .status-ok { color: #2ecc71; font-weight: bold; }
+        .status-bad { color: #e74c3c; font-weight: bold; }
+
+    </style>
+</head>
+<body>
+
+    <div class="exam-area">
+        <div class="exam-header">
+            <h2 id="examTitle">Loading Exam...</h2>
+            <p>Please answer all questions carefully. Do not leave this screen.</p>
+        </div>
+
+        <div id="questions-container">
+            <p style="text-align:center; color:#7f8c8d;">Loading questions from server...</p>
+        </div>
+
+        <button class="submit-btn" onclick="submitExam(false)">Finish & Submit Exam</button>
+    </div>
+
+    <div class="sidebar">
+        <div style="margin-bottom: 10px; font-size: 14px; opacity: 0.8;">Time Remaining:</div>
+        <div class="timer-display" id="timerDisplay">--:--</div>
+
+        <div class="camera-container">
+            <!-- <span class="live-badge">● LIVE REC</span> -->
+            <video id="webcam" autoplay muted playsinline></video>
+        </div>
+
+        <div id="violationMsg" class="warning-box">
+            ⚠️ ALERT
+        </div>
+
+        <div class="status-list">
+            <h4 style="margin-top:0; margin-bottom:15px; text-align:center;">🛡️ AI Monitor Status</h4>
+            
+            <div class="status-item">
+                <span>👤 Face Check:</span>
+                <span id="faceStat" class="status-ok">Waiting...</span>
+            </div>
+            
+            <div class="status-item">
+                <span>📱 Phone Check:</span>
+                <span id="phoneStat" class="status-ok">Waiting...</span>
+            </div>
+
+            <div class="status-item">
+                <span>🔊 Audio Check:</span>
+                <span id="audioStat" class="status-ok">Listening...</span>
+            </div>
+        </div>
+        
+        <p style="text-align:center; font-size:11px; opacity:0.5; margin-top:20px;">
+            Secure Exam System v2.0 <br> Powered by TensorFlow.js
+        </p>
+    </div>
+
+    <script>
+        const BASE_URL = "http://127.0.0.1:8000";
+        const urlParams = new URLSearchParams(window.location.search);
+        const EXAM_ID = urlParams.get('id');
+        const STUDENT_TOKEN = localStorage.getItem('student_token');
+
+        if (!EXAM_ID || !STUDENT_TOKEN) { window.location.href = "dashboard.html"; }
+
+        // --- UI HELPERS ---
+        function setStatus(id, text, isError) {
+            const el = document.getElementById(id);
+            el.innerText = text;
+            el.className = isError ? "status-bad" : "status-ok";
+        }
+        
+        function triggerAlert(msg) {
+            const box = document.getElementById('violationMsg');
+            const vid = document.getElementById('webcam');
+            box.innerText = msg;
+            box.style.display = "block";
+            vid.style.border = "3px solid #e74c3c"; // Red Border
+        }
+
+        function clearAlert() {
+            document.getElementById('violationMsg').style.display = "none";
+            document.getElementById('webcam').style.border = "3px solid #27ae60"; // Green Border
+        }
+
+        // --- 1. TAB SWITCHING ---
+        let tabSwitchCount = 0;
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+                tabSwitchCount++;
+                alert(`⚠️ DO NOT SWITCH TABS! Warning ${tabSwitchCount}`);
+                logViolation("tab_switch", 1.0);
+            }
+        });
+
+        // --- 2. CAMERA & AI ---
+        async function startProctoring() {
+            const video = document.getElementById('webcam');
+            const status = document.getElementById('faceStat'); // Mapping UI
+
+            // A. Camera Start
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 320, height: 240 },
+                    audio: true // Audio bhi on kar diya yahan
+                });
+                video.srcObject = stream;
+                
+                // Initialize Audio Logic here
+                startAudioAnalysis(stream);
+
+                await new Promise((resolve) => {
+                    video.onloadedmetadata = () => { video.play(); resolve(); };
+                });
+            } catch (err) {
+                alert("Camera/Mic Permission Denied!");
+                return;
+            }
+
+            // B. Load Models
+            setStatus('faceStat', 'Loading AI...', false);
+            try {
+                const faceModel = await blazeface.load();
+                const objModel = await cocoSsd.load();
+
+                // C. Loop
+                setInterval(async () => {
+                    // 1. Detect Phone
+                    const objects = await objModel.detect(video);
+                    const mobile = objects.find(o => o.class === "cell phone");
+                    
+                    if (mobile) {
+                        setStatus('phoneStat', 'Detected!', true);
+                        triggerAlert("⚠️ MOBILE PHONE DETECTED");
+                        logViolation("mobile_phone", 0.9);
+                    } else {
+                        setStatus('phoneStat', 'Clean', false);
+                    }
+
+                    // 2. Detect Face
+                    const faces = await faceModel.estimateFaces(video, false);
+
+                    if (faces.length === 0) {
+                        setStatus('faceStat', 'Not Visible', true);
+                        if (!mobile) triggerAlert("⚠️ NO FACE VISIBLE");
+                        logViolation("looking_away", 0.8);
+                    } else if (faces.length > 1) {
+                        setStatus('faceStat', 'Multiple People', true);
+                        if (!mobile) triggerAlert("⚠️ MULTIPLE PEOPLE");
+                        logViolation("multiple_faces", 0.9);
+                    } else {
+                        setStatus('faceStat', 'Active', false);
+                        // Agar mobile nahi hai, to alert hatao
+                        if (!mobile) clearAlert();
+                    }
+
+                }, 1000);
+
+            } catch (e) {
+                console.error(e);
+                setStatus('faceStat', 'AI Error', true);
+            }
+        }
+
+        // --- 3. AUDIO LOGIC (Integrated) ---
+        function startAudioAnalysis(stream) {
+            try {
+                const audioContext = new AudioContext();
+                const analyser = audioContext.createAnalyser();
+                const microphone = audioContext.createMediaStreamSource(stream);
+                const javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+
+                analyser.smoothingTimeConstant = 0.8;
+                analyser.fftSize = 1024;
+
+                microphone.connect(analyser);
+                analyser.connect(javascriptNode);
+                javascriptNode.connect(audioContext.destination);
+
+                let lastAudioLog = 0;
+
+                javascriptNode.onaudioprocess = function() {
+                    const array = new Uint8Array(analyser.frequencyBinCount);
+                    analyser.getByteFrequencyData(array);
+                    let values = 0;
+                    for (let i = 0; i < array.length; i++) values += array[i];
+                    const average = values / array.length;
+
+                    if (average > 30) { // Threshold
+                        setStatus('audioStat', 'Noise Detected', true);
+                        const now = Date.now();
+                        if (now - lastAudioLog > 5000) {
+                            console.log("🔊 Noise:", average);
+                            logViolation("audio_detected", average);
+                            lastAudioLog = now;
+                            triggerAlert("⚠️ HIGH NOISE DETECTED");
+                        }
+                    } else {
+                        setStatus('audioStat', 'Normal', false);
+                    }
+                };
+            } catch (err) { console.error("Audio Error", err); }
+        }
+
+        // --- 4. EXAM LOGIC ---
+        async function loadExamDetails() {
+            try {
+                const res = await fetch(`${BASE_URL}/exam/${EXAM_ID}`, {
+                    headers: { "Authorization": `Bearer ${STUDENT_TOKEN}` }
+                });
+                const exam = await res.json();
+                document.getElementById('examTitle').innerText = exam.name;
+                startTimer(exam.remaining_seconds / 60);
+                loadQuestions();
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadQuestions() {
+            const res = await fetch(`${BASE_URL}/exam/${EXAM_ID}/questions`, {
+                headers: { "Authorization": `Bearer ${STUDENT_TOKEN}` }
+            });
+            const qs = await res.json();
+            const container = document.getElementById('questions-container');
+            container.innerHTML = "";
+            qs.forEach((q, i) => {
+                let opts = "";
+                q.options.forEach(o => opts += `<label><input type="radio" name="q_${q.id}" value="${o}"> ${o}</label>`);
+                container.innerHTML += `<div class="question-card"><h3>Q${i+1}: ${q.question_text}</h3>${opts}</div>`;
+            });
+        }
+
+        let lastLog = 0;
+        async function logViolation(type, conf) {
+            const now = Date.now();
+            if (now - lastLog < 5000) return; 
+            lastLog = now;
+            // Note: Humne pehle decide kiya tha 'proctoring/log' use karna hai
+            await fetch(`${BASE_URL}/proctoring/log`, { 
+                method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${STUDENT_TOKEN}` },
+                body: JSON.stringify({ exam_id: parseInt(EXAM_ID), violation_type: type, confidence: conf, proof_image: "placeholder" })
+            });
+        }
+
+        let totalSeconds;
+        function startTimer(minutes) {
+            totalSeconds = Math.floor(minutes * 60);
+            updateTimer();
+            setInterval(() => { totalSeconds--; updateTimer(); if(totalSeconds<=0) submitExam(true); }, 1000);
+        }
+        function updateTimer() {
+            if(totalSeconds<0) totalSeconds=0;
+            const m = Math.floor(totalSeconds/60).toString().padStart(2,'0');
+            const s = (totalSeconds%60).toString().padStart(2,'0');
+            document.getElementById('timerDisplay').innerText = `${m}:${s}`;
+        }
+
+        async function submitExam(auto) {
+            const answers = [];
+            document.querySelectorAll('input:checked').forEach(i => answers.push({ question_id: parseInt(i.name.split('_')[1]), selected_option: i.value }));
+            if(!auto && !confirm("Finish Exam?")) return;
+            await fetch(`${BASE_URL}/exam/submit`, {
+                method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${STUDENT_TOKEN}` },
+                body: JSON.stringify({ exam_id: parseInt(EXAM_ID), answers: answers })
+            });
+            window.location.href = "dashboard.html";
+        }
+
+        // START
+        loadExamDetails();
+        startProctoring();
+
+    </script>
+</body>
+</html>

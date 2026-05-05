@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProctorEx - Smart Examination System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #008080;   /* Teal */
+            --dark: #004d4d;      /* Dark Teal */
+            --accent: #ff7f50;    /* Coral Orange */
+            --light: #f4f7f6;
+            --white: #ffffff;
+            --glass: rgba(255, 255, 255, 0.8);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--light); color: #333; overflow-x: hidden; }
+        a { text-decoration: none; }
+
+        /* --- 1. NAVBAR (Glassmorphism) --- */
+        nav {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 8%; background: var(--glass);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            position: fixed; width: 100%; top: 0; z-index: 1000;
+        }
+        .logo { font-size: 26px; font-weight: 700; color: var(--primary); letter-spacing: 1px; }
+        .logo span { color: var(--accent); }
+        
+        .nav-links a { margin-left: 25px; color: #444; font-weight: 500; transition: 0.3s; position: relative; }
+        .nav-links a::after {
+            content: ''; position: absolute; width: 0; height: 2px; bottom: -5px; left: 0;
+            background-color: var(--accent); transition: 0.3s;
+        }
+        .nav-links a:hover::after { width: 100%; }
+        
+        .nav-btn {
+            padding: 10px 25px; background: var(--primary); color: white !important;
+            border-radius: 30px; transition: 0.4s; box-shadow: 0 4px 15px rgba(0, 128, 128, 0.2);
+        }
+        .nav-btn:hover { background: var(--dark); transform: scale(1.05); }
+
+        /* --- 2. HERO SECTION --- */
+        .hero {
+            height: 100vh; display: flex; align-items: center; justify-content: space-between;
+            padding: 0 10%; background: radial-gradient(circle at top right, #e0f2f1, #ffffff);
+            margin-top: 20px;
+        }
+        .hero-text { flex: 1; animation: fadeInLeft 1s ease-out; }
+        .hero-text h1 { font-size: 56px; font-weight: 700; line-height: 1.1; color: var(--dark); margin-bottom: 20px; }
+        .hero-text h1 span { color: var(--primary); }
+        .hero-text p { font-size: 18px; color: #555; margin-bottom: 35px; line-height: 1.6; }
+        
+        .hero-img { flex: 1; text-align: right; animation: fadeInRight 1s ease-out; }
+        .hero-img img { width: 85%; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.1)); animation: float 4s ease-in-out infinite; }
+
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        @keyframes fadeInLeft { from { opacity: 0; transform: translateX(-50px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes fadeInRight { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+
+        .cta-btn {
+            padding: 16px 35px; background: var(--accent); color: white; border-radius: 50px;
+            font-weight: 700; font-size: 16px; transition: 0.3s; box-shadow: 0 8px 20px rgba(255, 127, 80, 0.4);
+            display: inline-block;
+        }
+        .cta-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(255, 127, 80, 0.5); }
+
+        /* --- 3. FEATURES BAR --- */
+        .features {
+            background: var(--dark); color: white; padding: 40px 10%;
+            display: flex; justify-content: space-around; transform: translateY(-50%);
+            margin: 0 5%; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+        .feature-item { display: flex; align-items: center; gap: 15px; }
+        .feature-item i { font-size: 30px; color: var(--accent); }
+        .feature-item h4 { font-size: 17px; font-weight: 600; }
+
+        /* --- 4. ROLES SECTION --- */
+        .roles-section { padding: 40px 10% 100px; text-align: center; }
+        .section-title { font-size: 36px; color: var(--dark); margin-bottom: 10px; font-weight: 700; }
+        .section-subtitle { color: #777; margin-bottom: 50px; }
+
+        .cards-container { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
+
+        .role-card {
+            background: var(--white); padding: 50px 40px; width: 350px;
+            border-radius: 25px; box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; overflow: hidden; border: 1px solid #eee;
+        }
+
+        /* Video-like Sliding Overlay on Hover */
+        .role-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 0;
+            background: linear-gradient(to bottom, var(--primary), var(--dark));
+            transition: 0.4s; z-index: 0; border-radius: 20px;
+        }
+
+        .role-card:hover::before { height: 100%; }
+        .role-card:hover { transform: translateY(-15px); }
+
+        .role-card * { position: relative; z-index: 1; transition: 0.3s; }
+        .role-card:hover h3, .role-card:hover p, .role-card:hover i { color: white; }
+
+        .icon-box { font-size: 60px; color: var(--primary); margin-bottom: 25px; }
+        .role-card h3 { font-size: 24px; margin-bottom: 15px; color: var(--dark); }
+        .role-card p { color: #666; font-size: 15px; margin-bottom: 30px; line-height: 1.5; }
+
+        .card-btn {
+            display: inline-block; padding: 12px 30px; border: 2px solid var(--primary);
+            color: var(--primary); border-radius: 30px; font-weight: 600;
+        }
+        .role-card:hover .card-btn { background: var(--accent); border-color: var(--accent); color: white; }
+
+        /* FOOTER */
+        footer { text-align: center; padding: 40px; background: #1a1a1a; color: #888; font-size: 14px; }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .hero { flex-direction: column; text-align: center; padding-top: 100px; }
+            .hero-img { display: none; }
+            .features { flex-direction: column; gap: 20px; transform: none; margin: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Proctor<span>Ex</span></div>
+        <div class="nav-links">
+            <a href="#home">Home</a>
+            <a href="#roles">Login</a>
+            <a href="#features">Features</a>
+            <a href="#roles" class="nav-btn">Get Started</a>
+        </div>
+    </nav>
+
+    <section class="hero" id="home">
+        <div class="hero-text">
+            <h1>Integrity Matters. <br><span>Secure Exams</span> <br>Made Simple.</h1>
+            <p>Empower your institution with AI-driven proctoring. Monitor behavioral patterns, prevent cheating, and generate instant, credible results.</p>
+            <a href="#roles" class="cta-btn">Experience ProctorEx <i class="fas fa-arrow-right" style="margin-left:8px"></i></a>
+        </div>
+        <div class="hero-img">
+            <img src="https://img.freepik.com/free-vector/online-test-concept-illustration_114360-5207.jpg"" alt="Exam Illustration">
+        </div>
+    </section>
+
+    <div class="features" id="features">
+        <div class="feature-item">
+            <i class="fas fa-eye"></i>
+            <div>
+                <h4>AI Proctoring</h4>
+                <p style="font-size: 12px; opacity: 0.8;">Behavior Analysis</p>
+            </div>
+        </div>
+        <div class="feature-item">
+            <i class="fas fa-file-invoice"></i>
+            <div>
+                <h4>Smart Reports</h4>
+                <p style="font-size: 12px; opacity: 0.8;">Instant Violation Logs</p>
+            </div>
+        </div>
+        <div class="feature-item">
+            <i class="fas fa-lock"></i>
+            <div>
+                <h4>Secure Vault</h4>
+                <p style="font-size: 12px; opacity: 0.8;">Encrypted Data</p>
+            </div>
+        </div>
+    </div>
+
+    <section class="roles-section" id="roles">
+        <h2 class="section-title">Select Your Portal</h2>
+        <p class="section-subtitle">Choose your role to access the personalized dashboard</p>
+        
+        <div class="cards-container">
+            <a href="student_login_signup.html" class="role-card">
+                <div class="icon-box"><i class="fas fa-user-graduate"></i></div>
+                <h3>Student Portal</h3>
+                <p>Join assigned exams, view your academic performance, and check proctoring feedback.</p>
+                <span class="card-btn">Login as Student</span>
+            </a>
+
+            <a href="uni_login_signup.html" class="role-card">
+                <div class="icon-box"><i class="fas fa-university"></i></div>
+                <h3>Admin Dashboard</h3>
+                <p>Configure exam environments, manage candidate lists, and review AI-flagged violations.</p>
+                <span class="card-btn">Login as Admin</span>
+            </a>
+        </div>
+    </section>
+
+    <footer>
+        <div style="margin-bottom: 20px;">
+            <i class="fab fa-facebook-f" style="margin: 0 10px;"></i>
+            <i class="fab fa-twitter" style="margin: 0 10px;"></i>
+            <i class="fab fa-linkedin-in" style="margin: 0 10px;"></i>
+        </div>
+        &copy; 2026 ProctorEx System. Empowering Education with Integrity.
+    </footer>
+
+</body>
+</html>
