@@ -1,72 +1,54 @@
-# 🎓 Advanced AI-Powered Online Proctoring System
+# 🛡️ SecureExam AI — Advanced Automated Online Exam Proctoring System
 
-![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)
-![TensorFlow.js](https://img.shields.io/badge/TensorFlow.js-Machine%20Learning-orange.svg)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue.svg)
+<div align="center">
 
-An intelligent, secure, and robust online proctoring system designed to maintain the integrity of remote examinations. Leveraging modern Web AI and a scalable backend architecture, this system actively monitors students to prevent cheating and unfair practices.
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688.svg?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
+[![TensorFlow.js](https://img.shields.io/badge/TensorFlow.js-Client%20AI-FF6F00.svg?style=for-the-badge&logo=tensorflow)](https://js.tensorflow.org)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-336791.svg?style=for-the-badge&logo=postgresql)](https://postgresql.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
-## ✨ Key Features
+**A secure, intelligent, and scalable online examination proctoring platform actively detecting cheating, unauthorized devices, and eye diversion in real-time.**
 
-* **🧠 Real-Time AI Face Monitoring**: Utilizes `blazeface` (TensorFlow.js) to detect if a student is looking away from the screen or if multiple people are present in the camera frame.
-* **📱 Object & Device Detection**: Integrates `COCO-SSD` to automatically flag the usage of mobile phones or other restricted devices during the exam.
-* **🔊 Audio & Noise Detection**: Uses the Web Audio API to detect suspicious background noise, whispering, or talking.
-* **🚫 Anti-Tab Switching**: Tracks browser visibility state. Switching tabs or minimizing the browser triggers an automatic violation log.
-* **⏱️ Secure Exam Engine**: Features a live countdown timer with auto-submission capabilities.
-* **📊 Comprehensive Dashboard**: A clean UI for students to view assigned exams, performance, and proctoring feedback.
-* **⚙️ Scalable API Architecture**: Built with FastAPI, SQLAlchemy, and PostgreSQL for high-performance data processing and authentication.
+</div>
 
-## 🛠️ Technology Stack
+---
 
-**Frontend:**
-* HTML5, CSS3, JavaScript
-* TensorFlow.js (BlazeFace, COCO-SSD)
-* Web Audio API
+## 📌 Overview
 
-**Backend:**
-* Python (FastAPI)
-* SQLAlchemy (ORM)
-* PostgreSQL (Database)
-* Uvicorn (ASGI Server)
+**SecureExam AI** combines client-side browser Web AI with a robust asynchronous FastAPI backend to ensure academic integrity during unproctored online assessments.
 
-## 🚀 Getting Started
+---
 
-### Prerequisites
-* Python 3.8+
-* PostgreSQL Server
+## ⚡ Multimodal Cheating Prevention Suite
 
-### Installation
+- **👀 Real-Time Face & Gaze Tracking**: Powered by `BlazeFace` (TensorFlow.js) detecting when candidates look away or if multiple faces appear in frame.
+- **📱 Unauthorized Device Detection**: Uses `COCO-SSD` to flag smartphones, tablets, or unauthorized study materials.
+- **🎙️ Background Whispering & Audio Monitor**: Web Audio API frequency analysis flags suspicious voices or background conversations.
+- **🔒 Anti-Tab Switch Guard**: Browser visibility API flags tab switching or application minimizing with immediate penalty strikes.
+- **👨‍💼 Proctor / Admin Dashboard**: Real-time review portal for invigilators with automated violation logs.
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/code-by-abrar/online-proctoring-system.git
-   cd online-proctoring-system
-   ```
+---
 
-2. **Set up a Virtual Environment**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-   ```
+## 🛠️ Setup & Execution
 
-3. **Install Dependencies**
+1. **Install Dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Environment Variables Configuration**
-   * Rename `.env.example` to `.env`
-   * Update the `DATABASE_URL` inside `.env` with your PostgreSQL credentials:
-     ```env
-     DATABASE_URL="postgresql://username:password@localhost/proctoring1_db"
-     ```
-
-5. **Run the Server**
-   ```bash
-   uvicorn app.main:app --reload
+2. **Configure Database & Environment**:
+   ```env
+   DATABASE_URL=postgresql://postgres:password@localhost:5432/proctoring_db
    ```
 
-6. **Access the Application**
-   Open `index.html` or `dashboard.html` in your web browser. Ensure the FastAPI backend is running on `http://127.0.0.1:8000`.
+3. **Start the Platform**:
+   ```bash
+   uvicorn app.main:app --reload --port 8000
+   ```
+4. Access student portal at `http://localhost:8000/student_login_signup.html`.
 
+---
+
+## 📄 License
+
+Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
